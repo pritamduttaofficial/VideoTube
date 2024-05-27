@@ -77,4 +77,74 @@ const userSignUp = asynchandler(async (req, res) => {
     .json(new ApiResponse(200, newUser, "User Registered Successfully"));
 });
 
-export { userSignUp };
+// ------------------ user login controller ----------------------
+const userLogin = asynchandler(async (req, res) => {
+  // get data from req.body
+  const { email, password } = req.body;
+
+  // email validation
+  if (!email) {
+    throw new ApiError(400, "Email is required");
+  }
+
+  // find the user in database
+  const user = await User.findOne({ email });
+
+  // check if user exist
+  if (!user) {
+    throw new ApiError(404, "User does not exist");
+  }
+
+  // password validation
+  const isPasswordValid = await user.isPasswordCorrect(password);
+  if (!isPasswordValid) {
+    throw new ApiError(401, "Incorrect Password");
+  }
+  // generate access and refresh token
+  const { accessToken, refreshToken } = await generateAccessAndRefreshTokens(
+    user._id
+  );
+
+  // get the new updated user from DB to send as response
+  const loggedInUser = await User.findById(user._id).select(
+    "-password -refreshToken"
+  );
+
+  // send tokens to user in cookies
+  const options = {
+    httpOnly: true,
+    secure: true,
+  };
+  return res
+    .status(200)
+    .cookie("accessToken", accessToken, options)
+    .cookie("refreshToken", refreshToken, options)
+    .json(new ApiResponse(200, loggedInUser, "Logged In Successfully"));
+});
+
+// ------------------ user logout controller ----------------------
+const userLogout = asynchandler(async (req, res) => {
+  await User.findByIdAndUpdate(
+    req.user._id,
+    {
+      $unset: {
+        refreshToken: 1, // removes the field from document
+      },
+    },
+    {
+      new: true,
+    }
+  );
+
+  const options = {
+    httpOnly: true,
+    secure: true,
+  };
+  res
+    .status(200)
+    .clearCookie("accessToken", options)
+    .clearCookie("refreshToken", options)
+    .json(new ApiResponse(200, {}, "Logged Out Successfully"));
+});
+
+export { userSignUp, userLogout, userLogin };
