@@ -1,8 +1,10 @@
-import { asynchandler } from "../utils/asyncHandler.js";
+import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { User } from "../models/user.model.js";
 import { fileUploadCloudinary } from "../utils/cloudinary.js";
+import JWT from "jsonwebtoken";
+import mongoose from "mongoose";
 
 const generateAccessAndRefreshTokens = async (userId) => {
   try {
@@ -20,7 +22,7 @@ const generateAccessAndRefreshTokens = async (userId) => {
 };
 
 // ------------------ user signup controller ----------------------
-const userSignUp = asynchandler(async (req, res) => {
+const userSignUp = asyncHandler(async (req, res) => {
   // get user data from frontend
   const { username, email, fullname, password } = req.body;
 
@@ -93,7 +95,7 @@ const userSignUp = asynchandler(async (req, res) => {
 });
 
 // ------------------ user login controller ----------------------
-const userLogin = asynchandler(async (req, res) => {
+const userLogin = asyncHandler(async (req, res) => {
   // get data from req.body
   const { email, password } = req.body;
 
@@ -138,7 +140,7 @@ const userLogin = asynchandler(async (req, res) => {
 });
 
 // ------------------ user logout controller ----------------------
-const userLogout = asynchandler(async (req, res) => {
+const userLogout = asyncHandler(async (req, res) => {
   await User.findByIdAndUpdate(
     req.user._id,
     {
@@ -163,7 +165,7 @@ const userLogout = asynchandler(async (req, res) => {
 });
 
 // ------------ controller to refresh the access token when it expires --------------
-const refreshAccessToken = asynchandler(async (req, res) => {
+const refreshAccessToken = asyncHandler(async (req, res) => {
   // get the refresh token from request cookies/header
   const token =
     req.cookies?.refreshToken ||
@@ -205,7 +207,7 @@ const refreshAccessToken = asynchandler(async (req, res) => {
 });
 
 // --------------- update user password controller -----------------
-const updateUserPassword = asynchandler(async (req, res) => {
+const updateUserPassword = asyncHandler(async (req, res) => {
   const { oldPassword, newPassword, confirmPassword } = req.body;
 
   if (newPassword !== confirmPassword) {
@@ -231,14 +233,14 @@ const updateUserPassword = asynchandler(async (req, res) => {
 });
 
 // ------------------- get the current user ------------------
-const getCurrentUser = asynchandler(async (req, res) => {
+const getCurrentUser = asyncHandler(async (req, res) => {
   return res
     .status(200)
     .json(new ApiResponse(200, req.user, "Current User Fetched"));
 });
 
 // ----------------- update user account details ------------------
-const updateUserAccountDetails = asynchandler(async (req, res) => {
+const updateUserAccountDetails = asyncHandler(async (req, res) => {
   const { fullname, email } = req.body;
 
   // validations
@@ -269,7 +271,7 @@ const updateUserAccountDetails = asynchandler(async (req, res) => {
 });
 
 // --------------------- update user avatar ---------------------
-const updateUserAvatar = asynchandler(async (req, res) => {
+const updateUserAvatar = asyncHandler(async (req, res) => {
   // get the file path from req.file using multer middleware
   const avatarLocalPath = req.file?.path;
   if (!avatarLocalPath) {
@@ -299,7 +301,7 @@ const updateUserAvatar = asynchandler(async (req, res) => {
 });
 
 // ------------------- update user coverImage ---------------------
-const updateUserCoverImage = asynchandler(async (req, res) => {
+const updateUserCoverImage = asyncHandler(async (req, res) => {
   // get the file path from req.file using multer middleware
   const coverImageLocalPath = req.file?.path;
   if (!coverImageLocalPath) {
@@ -329,7 +331,7 @@ const updateUserCoverImage = asynchandler(async (req, res) => {
 });
 
 // ------------------ get user channel profile -------------------
-const getUserChannelProfile = asynchandler(async (req, res) => {
+const getUserChannelProfile = asyncHandler(async (req, res) => {
   const { username } = req.params;
   if (!username?.trim()) {
     throw new ApiError(400, "Invalid username through url");
@@ -401,7 +403,7 @@ const getUserChannelProfile = asynchandler(async (req, res) => {
 });
 
 // ------------------- get user watch history -------------------
-const getUserWatchHistory = asynchandler(async (req, res) => {
+const getUserWatchHistory = asyncHandler(async (req, res) => {
   const user = await User.aggregate([
     {
       $match: {

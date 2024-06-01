@@ -1,9 +1,9 @@
 import { User } from "../models/user.model.js";
 import { ApiError } from "../utils/ApiError.js";
-import { asynchandler } from "../utils/asyncHandler.js";
+import { asyncHandler } from "../utils/asyncHandler.js";
 import JWT from "jsonwebtoken";
 
-const authenticateUser = asynchandler(async (req, res, next) => {
+const authenticateUser = asyncHandler(async (req, res, next) => {
   try {
     // get user token_cookie from request or from the `Authorization` header
     const token =
