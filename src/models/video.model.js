@@ -39,6 +39,10 @@ const videoSchema = new mongoose.Schema(
   }
 );
 
+// Define the text index for text based searching
+videoSchema.index({ title: "text", description: "text" });
+
+// aggregate paginate plugin to handle pagination internally
 videoSchema.plugin(mongooseAggregatePaginate);
 
 export const Video = mongoose.model("Video", videoSchema);

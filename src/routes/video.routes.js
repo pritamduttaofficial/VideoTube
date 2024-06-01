@@ -4,7 +4,7 @@ import {
   getAllVideos,
   getVideoById,
   publishAVideo,
-  togglePublishStatus,
+  toggleIsPublicStatus,
   updateVideo,
 } from "../controllers/video.controller.js";
 import { authenticateUser } from "../middlewares/auth.middleware.js";
@@ -36,6 +36,6 @@ router
   .delete(deleteVideo)
   .patch(upload.single("thumbnail"), updateVideo);
 
-router.route("/toggle/publish/:videoId").patch(togglePublishStatus);
+router.route("/toggle/publish/:videoId").patch(toggleIsPublicStatus);
 
 export default router;
