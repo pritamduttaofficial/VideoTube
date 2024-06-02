@@ -119,10 +119,11 @@ const publishAVideo = asyncHandler(async (req, res) => {
 
 // --------------------- get video by id --------------------
 const getVideoById = asyncHandler(async (req, res) => {
-  // get the video id from url parameter
   const { videoId } = req.params;
-  if (!videoId) {
-    throw new ApiError(400, "VideoId is required as url parameter");
+
+  // check if videoId is valid
+  if (!isValidObjectId(videoId)) {
+    throw new ApiError(400, "Invalid VideoId");
   }
 
   // find the video in db and check if it exist
@@ -139,13 +140,13 @@ const getVideoById = asyncHandler(async (req, res) => {
 
 // ---------------------- update video -----------------------
 const updateVideo = asyncHandler(async (req, res) => {
-  // get videoId from params and update details from body
   const { videoId } = req.params;
-  if (!videoId) {
-    throw new ApiError(400, "VideoId is required as url parameter");
-  }
-
   const { title, description } = req.body;
+
+  // check if videoId is valid
+  if (!isValidObjectId(videoId)) {
+    throw new ApiError(400, "Invalid VideoId");
+  }
 
   // validate if they exist
   if (!title) {
@@ -196,9 +197,12 @@ const updateVideo = asyncHandler(async (req, res) => {
 // ---------------------- delete video -----------------------
 const deleteVideo = asyncHandler(async (req, res) => {
   const { videoId } = req.params;
-  if (!videoId) {
-    throw new ApiError(400, "VideoId is required as url parameter");
+
+  // check if videoId is valid
+  if (!isValidObjectId(videoId)) {
+    throw new ApiError(400, "Invalid VideoId");
   }
+
   await Video.findByIdAndDelete(videoId);
   return res
     .status(200)
@@ -207,10 +211,11 @@ const deleteVideo = asyncHandler(async (req, res) => {
 
 // ------------------ toggle isPublic status -------------------
 const toggleIsPublicStatus = asyncHandler(async (req, res) => {
-  // get the videoId form req.params and validate
   const { videoId } = req.params;
-  if (!videoId) {
-    throw new ApiError(400, "VideoId is required as url parameter");
+
+  // check if videoId is valid
+  if (!isValidObjectId(videoId)) {
+    throw new ApiError(400, "Invalid VideoId");
   }
 
   // get the required video

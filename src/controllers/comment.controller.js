@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+import mongoose, { isValidObjectId } from "mongoose";
 import { Comment } from "../models/comment.model.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
@@ -9,9 +9,9 @@ const getVideoComments = asyncHandler(async (req, res) => {
   const { videoId } = req.params;
   const { page = 1, limit = 10 } = req.query;
 
-  // check if videoId exist
-  if (!videoId) {
-    throw new ApiError(400, "VideoId is must to get all comments");
+  // check if videoId is valid
+  if (!isValidObjectId(videoId)) {
+    throw new ApiError(400, "Invalid VideoId");
   }
 
   // parse page and limit values to integers
@@ -58,11 +58,12 @@ const addComment = asyncHandler(async (req, res) => {
   const { content } = req.body;
   const { videoId } = req.params;
 
+  // check if videoId is valid
+  if (!isValidObjectId(videoId)) {
+    throw new ApiError(400, "Invalid VideoId");
+  }
   if (!content) {
     throw new ApiError(400, "Content is required to add comment");
-  }
-  if (!videoId) {
-    throw new ApiError(400, "VideoId is must to add comments");
   }
 
   const comment = await Comment.create({
@@ -85,11 +86,12 @@ const updateComment = asyncHandler(async (req, res) => {
   const { commentId } = req.params;
   const { content } = req.body;
 
+  // check if commentId is valid
+  if (!isValidObjectId(commentId)) {
+    throw new ApiError(400, "Invalid commentId");
+  }
   if (!content) {
     throw new ApiError(400, "Content is required to update comment");
-  }
-  if (!commentId) {
-    throw new ApiError(400, "CommentId is must to update comments");
   }
 
   const updatedComment = await Comment.findByIdAndUpdate(
@@ -116,8 +118,10 @@ const updateComment = asyncHandler(async (req, res) => {
 // ---------------- delete comment controller ------------------
 const deleteComment = asyncHandler(async (req, res) => {
   const { commentId } = req.params;
-  if (!commentId) {
-    throw new ApiError(400, "CommentId is must to delete comments");
+
+  // check if commentId is valid
+  if (!isValidObjectId(commentId)) {
+    throw new ApiError(400, "Invalid commentId");
   }
 
   await Comment.findByIdAndDelete(commentId);
