@@ -26,17 +26,18 @@ const userSignUp = asyncHandler(async (req, res) => {
   // get user data from frontend
   const { username, email, fullname, password } = req.body;
 
+  console.log(req.body);
   // validation - not empty, correct format
-  if (username.trim() === "") {
+  if (!username) {
     throw new ApiError(400, "Username is required");
   }
-  if (email.trim() === "") {
+  if (!email) {
     throw new ApiError(400, "Email is required");
   }
-  if (fullname.trim() === "") {
+  if (!fullname) {
     throw new ApiError(400, "Fullname is required");
   }
-  if (password.trim() === "") {
+  if (!password) {
     throw new ApiError(400, "Password is required");
   }
 
@@ -48,8 +49,11 @@ const userSignUp = asyncHandler(async (req, res) => {
     throw new ApiError(409, "User already exist");
   }
 
-  // check for images if they exist:- avatar/coverImage
-  const avatarLocalPath = req.files?.avatar[0]?.path;
+  // Debugging log for req.files
+  console.log("Files received:", req.files);
+
+  // check for images if they exist: avatar/coverImage
+  const avatarLocalPath = req.files?.avatar?.[0]?.path;
 
   let coverImageLocalPath;
   if (req.files && req.files.coverImage && req.files.coverImage.length > 0) {
@@ -128,19 +132,20 @@ const userLogin = asyncHandler(async (req, res) => {
   );
 
   // send tokens to user in cookies
-  const options = {
-    httpOnly: true,
-    secure: true,
-  };
+  // const options = {
+  //   httpOnly: true,
+  //   secure: false,
+  // };
   return res
     .status(200)
-    .cookie("accessToken", accessToken, options)
-    .cookie("refreshToken", refreshToken, options)
+    .cookie("accessToken", accessToken)
+    .cookie("refreshToken", refreshToken)
     .json(new ApiResponse(200, loggedInUser, "Logged In Successfully"));
 });
 
 // ------------------ user logout controller ----------------------
 const userLogout = asyncHandler(async (req, res) => {
+  console.log(req.user);
   await User.findByIdAndUpdate(
     req.user._id,
     {
@@ -153,14 +158,14 @@ const userLogout = asyncHandler(async (req, res) => {
     }
   );
 
-  const options = {
-    httpOnly: true,
-    secure: true,
-  };
+  // const options = {
+  //   httpOnly: true,
+  //   secure: false,
+  // };
   res
     .status(200)
-    .clearCookie("accessToken", options)
-    .clearCookie("refreshToken", options)
+    .clearCookie("accessToken")
+    .clearCookie("refreshToken")
     .json(new ApiResponse(200, {}, "Logged Out Successfully"));
 });
 
@@ -197,7 +202,7 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
   // send tokens to user in cookies
   const options = {
     httpOnly: true,
-    secure: true,
+    secure: false,
   };
   return res
     .status(200)
