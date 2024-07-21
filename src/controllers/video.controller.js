@@ -35,7 +35,21 @@ const getAllVideos = asyncHandler(async (req, res) => {
   sortStage[sortBy] = sortType === "asc" ? 1 : -1;
 
   // Create the aggregation pipeline for match and sort
-  const pipeline = [{ $match: matchStage }, { $sort: sortStage }];
+  const pipeline = [
+    { $match: matchStage },
+    {
+      $lookup: {
+        from: "users",
+        localField: "owner",
+        foreignField: "_id",
+        as: "ownerDetails",
+      },
+    },
+    {
+      $unwind: "$ownerDetails",
+    },
+    { $sort: sortStage },
+  ];
 
   // Use aggregatePaginate for pagination
   const options = {
@@ -127,7 +141,8 @@ const getVideoById = asyncHandler(async (req, res) => {
   }
 
   // find the video in db and check if it exist
-  const video = await Video.findById(videoId);
+  const video = await Video.findById(videoId).populate("owner");
+
   if (!video) {
     throw new ApiError(400, "Video does not exist");
   }
