@@ -25,6 +25,17 @@ const getVideoComments = asyncHandler(async (req, res) => {
         video: new mongoose.Types.ObjectId(videoId),
       },
     },
+    {
+      $lookup: {
+        from: "users",
+        localField: "owner",
+        foreignField: "_id",
+        as: "owner",
+      },
+    },
+    {
+      $unwind: "$owner",
+    },
   ];
 
   const options = {
@@ -58,7 +69,7 @@ const addComment = asyncHandler(async (req, res) => {
   const { content } = req.body;
   const { videoId } = req.params;
 
-  // check if videoId is valid
+  // Check if videoId is valid
   if (!isValidObjectId(videoId)) {
     throw new ApiError(400, "Invalid VideoId");
   }
@@ -66,6 +77,7 @@ const addComment = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Content is required to add comment");
   }
 
+  // Create the comment
   const comment = await Comment.create({
     content,
     video: videoId,
@@ -76,9 +88,12 @@ const addComment = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Failed to add comment");
   }
 
+  // Populate the owner field with user details
+  const populatedComment = await comment.populate("owner");
+
   return res
     .status(201)
-    .json(new ApiResponse(201, comment, "Comment Added Successfully"));
+    .json(new ApiResponse(201, populatedComment, "Comment Added Successfully"));
 });
 
 // ---------------- update comment controller ------------------
@@ -94,25 +109,21 @@ const updateComment = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Content is required to update comment");
   }
 
-  const updatedComment = await Comment.findByIdAndUpdate(
-    commentId,
-    {
-      $set: {
-        content,
-      },
-    },
-    {
-      new: true,
-    }
-  );
+  // Find the comment by id
+  const comment = await Comment.findById(commentId);
 
-  if (!updatedComment) {
-    throw new ApiError(400, "Comment Updation Failed");
+  // Check if the comment exists and the logged-in user is the author
+  if (!comment || comment.owner.toString() !== req.user._id.toString()) {
+    throw new ApiError(400, "Not authorized to update this comment");
   }
+
+  // Update the comment content
+  comment.content = content;
+  await comment.save();
 
   return res
     .status(200)
-    .json(new ApiResponse(200, updatedComment, "Comment Updated Successfully"));
+    .json(new ApiResponse(200, comment, "Comment Updated Successfully"));
 });
 
 // ---------------- delete comment controller ------------------
@@ -124,6 +135,15 @@ const deleteComment = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Invalid commentId");
   }
 
+  // Find the comment by id
+  const comment = await Comment.findById(commentId);
+
+  // Check if the comment exists and the logged-in user is the author
+  if (!comment || comment.owner.toString() !== req.user._id.toString()) {
+    throw new ApiError(400, "Not authorized to update this comment");
+  }
+
+  // Delete the comment
   await Comment.findByIdAndDelete(commentId);
 
   return res

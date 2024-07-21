@@ -9,34 +9,23 @@ const toggleVideoLike = asyncHandler(async (req, res) => {
   const { videoId } = req.params;
   const userId = req.user?._id;
 
-  // check if videoId is valid
   if (!isValidObjectId(videoId)) {
     throw new ApiError(400, "Invalid VideoId");
   }
 
-  // check if the video is already liked by user
   const alreadyLiked = await Like.findOne({ video: videoId, likedBy: userId });
 
   if (alreadyLiked) {
-    // if video is already liked, delete the document i.e unlike the video
     await Like.deleteOne({ _id: alreadyLiked._id });
-
     return res
       .status(200)
       .json(new ApiResponse(200, {}, "Video Unliked successfully"));
   } else {
-    // otherwise create a new document for the like
-    const newLike = new Like({
-      video: videoId,
-      likedBy: userId,
-    });
-
-    // save the newly created document
+    const newLike = new Like({ video: videoId, likedBy: userId });
     await newLike.save();
-
     return res
       .status(200)
-      .json(new ApiResponse(200, newLike, "Video Liked successfully"));
+      .json(new ApiResponse(200, { liked: true }, "Video Liked successfully"));
   }
 });
 
@@ -160,9 +149,29 @@ const getLikedVideosOfUser = asyncHandler(async (req, res) => {
     );
 });
 
+// ------------------ get likes count of certain video ---------------------
+const getVideoLikesCount = asyncHandler(async (req, res) => {
+  const { videoId } = req.params;
+
+  // Check if videoId is valid
+  if (!isValidObjectId(videoId)) {
+    throw new ApiError(400, "Invalid VideoId");
+  }
+
+  // Get the count of likes for the video
+  const likesCount = await Like.countDocuments({ video: videoId });
+
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(200, { likesCount }, "Likes count retrieved successfully")
+    );
+});
+
 export {
   toggleCommentLike,
   toggleTweetLike,
   toggleVideoLike,
   getLikedVideosOfUser,
+  getVideoLikesCount,
 };
