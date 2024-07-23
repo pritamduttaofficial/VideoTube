@@ -57,7 +57,16 @@ const getPlaylistById = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Invalid PlaylistId");
   }
 
-  const playlist = await Playlist.findById(playlistId);
+  const playlist = await Playlist.findById(playlistId)
+    .populate({
+      path: "videos",
+      populate: {
+        path: "owner",
+        model: "User",
+        select: "fullname avatar",
+      },
+    })
+    .populate("owner");
 
   if (!playlist) {
     throw new ApiError(400, "Playlist not found");
@@ -71,7 +80,6 @@ const getPlaylistById = asyncHandler(async (req, res) => {
 // ------------------------ Add A Video To Playlist ------------------------
 const addVideoToPlaylist = asyncHandler(async (req, res) => {
   const { playlistId, videoId } = req.params;
-
   if (!isValidObjectId(playlistId)) {
     throw new ApiError(400, "Invalid PlaylistId");
   }
@@ -138,9 +146,19 @@ const removeVideoFromPlaylist = asyncHandler(async (req, res) => {
   // Save the updated playlist
   await playlist.save();
 
+  const updatedPlaylist = await Playlist.findById(playlistId)
+    .populate({
+      path: "videos",
+      populate: {
+        path: "owner",
+        model: "User",
+        select: "fullname avatar",
+      },
+    })
+    .populate("owner");
   return res
     .status(200)
-    .json(new ApiResponse(200, playlist, "Video Removed From Playlist"));
+    .json(new ApiResponse(200, updatedPlaylist, "Video Removed From Playlist"));
 });
 
 // --------------------------- Delete Playlist --------------------------
@@ -182,7 +200,16 @@ const updatePlaylist = asyncHandler(async (req, res) => {
     {
       new: true,
     }
-  );
+  )
+    .populate({
+      path: "videos",
+      populate: {
+        path: "owner",
+        model: "User",
+        select: "fullname avatar",
+      },
+    })
+    .populate("owner");
 
   if (!updatePlaylist) {
     throw new ApiError(400, "Playlist Updation Failed || Playlist Not Found");
@@ -191,7 +218,7 @@ const updatePlaylist = asyncHandler(async (req, res) => {
   return res
     .status(200)
     .json(
-      new ApiResponse(200, updatedPlaylist, "Playlist Deleted Successfully")
+      new ApiResponse(200, updatedPlaylist, "Playlist Updated Successfully")
     );
 });
 
