@@ -7,7 +7,7 @@ import {
 import { authenticateUser } from "../middlewares/auth.middleware.js";
 
 const router = Router();
-router.use(authenticateUser); // Apply verifyJWT middleware to all routes in this file
+router.use(authenticateUser);
 
 router
   .route("/c/:channelId")

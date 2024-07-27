@@ -248,6 +248,27 @@ const toggleIsPublicStatus = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, video, "Video toggled Successfully"));
 });
 
+// -------------------- update view count ----------------------
+const updateViewCount = asyncHandler(async (req, res) => {
+  const { videoId } = req.params;
+
+  if (!mongoose.isValidObjectId(videoId)) {
+    throw new ApiError(400, "Invalid VideoId");
+  }
+
+  const video = await Video.findById(videoId);
+  if (!video) {
+    throw new ApiError(404, "Video not found");
+  }
+
+  video.views += 1;
+  await video.save();
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, video, "View count updated"));
+});
+
 export {
   getAllVideos,
   publishAVideo,
@@ -255,4 +276,5 @@ export {
   updateVideo,
   deleteVideo,
   toggleIsPublicStatus,
+  updateViewCount,
 };

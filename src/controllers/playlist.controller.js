@@ -38,7 +38,7 @@ const getUserPlaylists = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Invalid UserId");
   }
 
-  const playlists = await Playlist.find({ owner: userId });
+  const playlists = await Playlist.find({ owner: userId }).populate("videos");
 
   if (!playlists) {
     throw new ApiError(400, "Playlist not found");

@@ -7,13 +7,13 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 
 // ------------------------ Create Tweet ----------------------------
 const createTweet = asyncHandler(async (req, res) => {
-  const { content } = req.body;
-  if (!content) {
+  const { tweetData } = req.body;
+  if (!tweetData) {
     throw new ApiError(400, "Content is required to tweet something");
   }
 
   const tweet = await Tweet.create({
-    content,
+    content: tweetData,
     owner: req.user?._id,
   });
 

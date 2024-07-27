@@ -5,6 +5,7 @@ import { Like } from "../models/like.model.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
+import { User } from "../models/user.model.js";
 
 // ---------------------- get the channel details -----------------------
 const getChannelStats = asyncHandler(async (req, res) => {
@@ -61,14 +62,19 @@ const getChannelStats = asyncHandler(async (req, res) => {
   ];
   const likeStats = await Video.aggregate(likesPipeline);
 
+  const channelDetails = await User.findById(channelId).select(
+    "-password -refreshToken"
+  );
+
   return res.status(200).json(
     new ApiResponse(
       200,
       {
         totalSubscribers: subscriberCount,
         totalVideos: videoCount,
-        totalViews: viewStats[0].totalViews,
-        totalLikes: likeStats[0].totalLikes,
+        totalViews: viewStats[0]?.totalViews,
+        totalLikes: likeStats[0]?.totalLikes,
+        channelDetails: channelDetails,
       },
       "Channel Stats Fetched Successfully"
     )
@@ -83,8 +89,7 @@ const getChannelVideos = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Invalid ChannelId");
   }
 
-  const videos = await Video.find({ owner: channelId });
-
+  const videos = await Video.find({ owner: channelId }).populate("owner");
   if (!videos.length) {
     return res
       .status(200)
