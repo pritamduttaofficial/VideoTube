@@ -407,6 +407,35 @@ const getUserChannelProfile = asyncHandler(async (req, res) => {
     );
 });
 
+// ---------------- add video to user watch history --------------
+const addToWatchHistory = asyncHandler(async (req, res) => {
+  const userId = req.user._id;
+  const videoId = req.params.videoId;
+
+  const user = await User.findById(userId);
+  if (!user) {
+    throw new ApiError(400, "User not found");
+  }
+
+  // Add the video to the watch history if it doesn't already exist
+  if (!user.watchHistory.includes(videoId)) {
+    user.watchHistory.push(videoId);
+    await user.save();
+  }
+
+  const updatedUser = await User.findById(userId);
+
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(
+        200,
+        updatedUser.watchHistory,
+        "Video added to watch history"
+      )
+    );
+});
+
 // ------------------- get user watch history -------------------
 const getUserWatchHistory = asyncHandler(async (req, res) => {
   const user = await User.aggregate([
@@ -474,4 +503,5 @@ export {
   updateUserCoverImage,
   getUserChannelProfile,
   getUserWatchHistory,
+  addToWatchHistory,
 };

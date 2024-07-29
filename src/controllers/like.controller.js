@@ -130,6 +130,30 @@ const getLikedVideosOfUser = asyncHandler(async (req, res) => {
     },
     // deconstruct the `videoDetails` array into individual documents.
     { $unwind: "$videoDetails" },
+    {
+      $lookup: {
+        from: "users",
+        localField: "videoDetails.owner",
+        foreignField: "_id",
+        as: "videoDetails.ownerDetails",
+      },
+    },
+    { $unwind: "$videoDetails.ownerDetails" },
+    {
+      $addFields: {
+        "videoDetails.owner": {
+          _id: "$videoDetails.ownerDetails._id",
+          fullname: "$videoDetails.ownerDetails.fullname",
+          username: "$videoDetails.ownerDetails.username",
+          avatar: "$videoDetails.ownerDetails.avatar",
+        },
+      },
+    },
+    {
+      $project: {
+        "videoDetails.ownerDetails": 0,
+      },
+    },
     // replace the `likes` documents with the `videoDetails` documents to get a better output.
     { $replaceRoot: { newRoot: "$videoDetails" } },
   ];
