@@ -26,7 +26,6 @@ const userSignUp = asyncHandler(async (req, res) => {
   // get user data from frontend
   const { username, email, fullname, password } = req.body;
 
-  console.log(req.body);
   // validation - not empty, correct format
   if (!username) {
     throw new ApiError(400, "Username is required");
@@ -48,9 +47,6 @@ const userSignUp = asyncHandler(async (req, res) => {
   if (existingUser) {
     throw new ApiError(409, "User already exist");
   }
-
-  // Debugging log for req.files
-  console.log("Files received:", req.files);
 
   // check for images if they exist: avatar/coverImage
   const avatarLocalPath = req.files?.avatar?.[0]?.path;
@@ -145,7 +141,6 @@ const userLogin = asyncHandler(async (req, res) => {
 
 // ------------------ user logout controller ----------------------
 const userLogout = asyncHandler(async (req, res) => {
-  console.log(req.user);
   await User.findByIdAndUpdate(
     req.user._id,
     {

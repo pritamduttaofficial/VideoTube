@@ -61,7 +61,6 @@ const getAllVideos = asyncHandler(async (req, res) => {
     Video.aggregate(pipeline),
     options
   );
-  console.log(result);
 
   // Send response
   res.status(200).json(
