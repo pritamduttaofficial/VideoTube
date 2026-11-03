@@ -43,12 +43,3 @@ app.use(errorHandler);
 
 export { app };
 
-/* 
-  1. The errorHandler middleware you've defined can handle errors thrown by your controller or any middleware in your Express application.
-  2. To use this `errorHandler` middleware in your Express app, it must be defined after all routes.
-
-  ** How It Handles Controller Errors:-
-  -> When an error occurs within your controller (or any middleware), you can throw an instance of `ApiError` by doing `throw new ApiError()`.
-  -> When `next(error)` is called within your `asyncHandler's` `catch` block, Express will pass the error to the `errorHandler` middleware you've defined. The `errorHandler` will then respond with a JSON object containing the appropriate status code and error message.
-  -> `errorHandler` middleware is well-suited to handle errors thrown by your controller functions or any middleware in your Express application. It helps in centralizing error handling logic and providing consistent error responses to clients, which is crucial for maintaining a robust and reliable API.
-*/
